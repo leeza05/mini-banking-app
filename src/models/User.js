@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcrypt';
 
 const { Schema } = mongoose;
 
@@ -11,6 +12,17 @@ const userSchema = new Schema(
   },
   { timestamps: true }
 );
+
+userSchema.pre('save', async function () {
+  if (!this.isModified('password')) return;
+
+  try {
+    const hashedPassword = await bcrypt.hash(this.password, 10);
+    this.password = hashedPassword;
+  } catch (err) {
+    throw new Error('Error hashing password');
+  }
+});
 
 const User = mongoose.model('User', userSchema);
 
